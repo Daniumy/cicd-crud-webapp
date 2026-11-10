@@ -12,7 +12,11 @@ React + Vite app, packaged as an nginx image. The `Jenkinsfile` builds it and ha
 - **nginx:** SPA fallback to `index.html`, `config.js` is never cached, hashed `/assets/` are cached forever.
 - **Jenkins needs:** Docker on the VM and the `github-gitops` credential to push to the GitOps repo.
 
-Full end-to-end picture: see the [root README](../README.md).
+## How this repo fits in the global flow
+
+This repo is the **CI half** of a two-repo delivery setup. Pushing here triggers Jenkins, which builds the image and writes the new tag into [`cicd-crud-gitops`](https://github.com/Daniumy/cicd-crud-gitops) (steps 1 to 4 below). From there ArgoCD takes over and syncs the cluster (steps 5 to 8). Jenkins never touches Kubernetes.
+
+![End-to-end delivery flow](docs/overview.svg)
 
 ---
 
