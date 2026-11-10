@@ -3,7 +3,7 @@ pipeline {
 
   environment {
     IMAGE       = 'europe-southwest1-docker.pkg.dev/chollos-fa-4821/chollos/web'
-    GITOPS_REPO = 'github.com/Daniumy/chollosfuentealamo-gitops.git'
+    GITOPS_REPO = 'github.com/Daniumy/cicd-crud-gitops.git'
   }
 
   options {

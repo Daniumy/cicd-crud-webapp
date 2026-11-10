@@ -1,4 +1,44 @@
-# React + TypeScript + Vite
+# cicd-crud-webapp
+
+React + Vite app, packaged as an nginx image. The `Jenkinsfile` builds it and hands the new version to the [GitOps repo](https://github.com/Daniumy/cicd-crud-gitops); it never deploys to the cluster itself.
+
+```mermaid
+flowchart TD
+  push(["git push<br/>develop / main / other"]) --> prep
+
+  subgraph J["Jenkinsfile"]
+    direction TB
+    prep["Preparar<br/>TAG = 7-char commit SHA<br/>develop = dev, main = prod, other = none"]
+    lint["Lint<br/>throwaway node:24 container<br/>(npm ci + npm run lint)"]
+    build["Build image<br/>docker build, APP_VERSION = TAG"]
+    pushimg["Push image<br/>only develop / main"]
+    bump["Deploy (GitOps)<br/>clone gitops repo, sed newTag in<br/>app/overlays/TARGET/kustomization.yaml,<br/>commit + push"]
+    prep --> lint --> build --> pushimg --> bump
+  end
+
+  pushimg --> ar[("Artifact Registry<br/>chollos/web:TAG")]
+  bump --> gitops[("cicd-crud-gitops<br/>main")]
+
+  subgraph IMG["Dockerfile (multi-stage)"]
+    direction LR
+    s1["Stage 1: node:24-alpine<br/>npm ci, vite build"] --> s2["Stage 2: nginx:stable-alpine<br/>serves dist/ + nginx.conf"]
+  end
+  build -.- IMG
+```
+
+## What each piece does
+
+- **Branch rules:** `develop` deploys to dev, `main` to prod, any other branch (e.g. `feature/*`) only runs lint + build. (Branch logic lives in the `develop` branch's `Jenkinsfile`; `main` still has the older prod-only version until merged.)
+- **Image tag = commit SHA**, also baked in as `VITE_APP_VERSION` so the running app can show which build it is.
+- **Same image for every environment.** Env-specific values (banner, colors, contact email) are not compiled in: the app loads `/config.js` at runtime, which Kubernetes overrides with a ConfigMap per environment.
+- **nginx:** SPA fallback to `index.html`, `config.js` is never cached, hashed `/assets/` are cached forever.
+- **Jenkins needs:** Docker on the VM and the `github-gitops` credential to push to the GitOps repo.
+
+Full end-to-end picture: see the [root README](../README.md).
+
+---
+
+# React + TypeScript + Vite (template notes)
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
