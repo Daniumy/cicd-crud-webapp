@@ -2,29 +2,7 @@
 
 React + Vite app, packaged as an nginx image. The `Jenkinsfile` builds it and hands the new version to the [GitOps repo](https://github.com/Daniumy/cicd-crud-gitops); it never deploys to the cluster itself.
 
-```mermaid
-flowchart TD
-  push(["git push<br/>develop / main / other"]) --> prep
-
-  subgraph J["Jenkinsfile"]
-    direction TB
-    prep["Preparar<br/>TAG = 7-char commit SHA<br/>develop = dev, main = prod, other = none"]
-    lint["Lint<br/>throwaway node:24 container<br/>(npm ci + npm run lint)"]
-    build["Build image<br/>docker build, APP_VERSION = TAG"]
-    pushimg["Push image<br/>only develop / main"]
-    bump["Deploy (GitOps)<br/>clone gitops repo, sed newTag in<br/>app/overlays/TARGET/kustomization.yaml,<br/>commit + push"]
-    prep --> lint --> build --> pushimg --> bump
-  end
-
-  pushimg --> ar[("Artifact Registry<br/>chollos/web:TAG")]
-  bump --> gitops[("cicd-crud-gitops<br/>main")]
-
-  subgraph IMG["Dockerfile (multi-stage)"]
-    direction LR
-    s1["Stage 1: node:24-alpine<br/>npm ci, vite build"] --> s2["Stage 2: nginx:stable-alpine<br/>serves dist/ + nginx.conf"]
-  end
-  build -.- IMG
-```
+![Jenkins pipeline of the webapp](docs/pipeline.svg)
 
 ## What each piece does
 

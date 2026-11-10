@@ -1,0 +1,125 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630" role="img" aria-labelledby="ttl">
+  <title id="ttl">Jenkins pipeline of the webapp: prepare, lint, build image, push image, deploy via GitOps</title>
+  <defs>
+    <marker id="a" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#475569"/></marker>
+    <style>
+      text{font-family:Inter,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+      .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+      .box{fill:#fff;stroke:#cbd5e1;stroke-width:1.5}
+      .t{font-size:15px;font-weight:600;fill:#0f172a}
+      .s{font-size:12px;fill:#475569}
+      .m{font-size:11px;fill:#64748b}
+      .h{font-size:22px;font-weight:700;fill:#0f172a}
+      .ln{stroke:#475569;stroke-width:1.6;fill:none;marker-end:url(#a)}
+      .dash{stroke-dasharray:5 4}
+      .nb{fill:#0f172a}
+      .nt{font-size:11px;font-weight:700;fill:#fff;text-anchor:middle}
+      .chip{font-size:11px;font-weight:600;fill:#fff;text-anchor:middle}
+    </style>
+  </defs>
+
+  <rect x="0.75" y="0.75" width="1198.5" height="628.5" rx="16" fill="#f8fafc" stroke="#e2e8f0"/>
+  <text x="30" y="42" class="h">cicd-crud-webapp · Jenkins pipeline</text>
+  <text x="30" y="64" class="m" style="font-size:12px">Builds one image per commit and hands the new tag to the GitOps repo. It never deploys to the cluster itself.</text>
+
+  <!-- branch chips -->
+  <rect x="30" y="92" width="86" height="28" rx="14" fill="#0f172a"/><text x="73" y="110" class="chip mono">git push</text>
+  <path class="ln" d="M120 106 H146"/>
+  <rect x="150" y="92" width="150" height="28" rx="14" fill="#ea580c"/><text x="225" y="110" class="chip">develop → target dev</text>
+  <rect x="312" y="92" width="150" height="28" rx="14" fill="#16a34a"/><text x="387" y="110" class="chip">main → target prod</text>
+  <rect x="474" y="92" width="190" height="28" rx="14" fill="#94a3b8"/><text x="569" y="110" class="chip">other → CI only, no deploy</text>
+
+  <!-- stage cards -->
+  <g>
+    <rect class="box" x="30" y="150" width="212" height="190" rx="12"/>
+    <circle class="nb" cx="52" cy="176" r="11"/><text class="nt" x="52" y="180">1</text>
+    <text x="72" y="181" class="t">Prepare</text>
+    <text x="46" y="214" class="s">TAG = first 7 chars of the</text>
+    <text x="46" y="232" class="s">commit SHA. The branch</text>
+    <text x="46" y="250" class="s">picks the target env:</text>
+    <text x="46" y="268" class="s">dev, prod or none.</text>
+  </g>
+  <g>
+    <rect class="box" x="262" y="150" width="212" height="190" rx="12"/>
+    <circle class="nb" cx="284" cy="176" r="11"/><text class="nt" x="284" y="180">2</text>
+    <text x="304" y="181" class="t">Lint</text>
+    <text x="278" y="214" class="s">Throwaway node:24 container</text>
+    <text x="278" y="232" class="s">runs npm ci + npm run lint.</text>
+    <text x="278" y="250" class="s">The VM has no Node, only</text>
+    <text x="278" y="268" class="s">Docker.</text>
+    <text x="278" y="316" class="m">runs on every branch</text>
+  </g>
+  <g>
+    <rect class="box" x="494" y="150" width="212" height="190" rx="12"/>
+    <circle class="nb" cx="516" cy="176" r="11"/><text class="nt" x="516" y="180">3</text>
+    <text x="536" y="181" class="t">Build image</text>
+    <text x="510" y="214" class="s">docker build with the</text>
+    <text x="510" y="232" class="s">Dockerfile. TAG is baked in</text>
+    <text x="510" y="250" class="s">as the app version</text>
+    <text x="510" y="268" class="s">(VITE_APP_VERSION).</text>
+    <text x="510" y="316" class="m">runs on every branch</text>
+  </g>
+  <g>
+    <rect class="box" x="726" y="150" width="212" height="190" rx="12"/>
+    <circle class="nb" cx="748" cy="176" r="11"/><text class="nt" x="748" y="180">4</text>
+    <text x="768" y="181" class="t">Push image</text>
+    <text x="742" y="214" class="s">docker push to Artifact</text>
+    <text x="742" y="232" class="s">Registry as chollos/web:TAG.</text>
+    <text x="742" y="250" class="s">Immutable: one tag per</text>
+    <text x="742" y="268" class="s">commit.</text>
+    <rect x="742" y="304" width="132" height="22" rx="11" fill="#4f46e5"/><text x="808" y="319" class="chip">develop + main only</text>
+  </g>
+  <g>
+    <rect class="box" x="958" y="150" width="212" height="190" rx="12"/>
+    <circle class="nb" cx="980" cy="176" r="11"/><text class="nt" x="980" y="180">5</text>
+    <text x="1000" y="181" class="t">Deploy (GitOps)</text>
+    <text x="974" y="214" class="s">Clones the gitops repo and</text>
+    <text x="974" y="232" class="s">seds newTag in the env</text>
+    <text x="974" y="250" class="s">overlay, then commits and</text>
+    <text x="974" y="268" class="s">pushes. ArgoCD does the rest.</text>
+    <rect x="974" y="304" width="132" height="22" rx="11" fill="#4f46e5"/><text x="1040" y="319" class="chip">develop + main only</text>
+  </g>
+  <path class="ln" d="M242 245 H262"/>
+  <path class="ln" d="M474 245 H494"/>
+  <path class="ln" d="M706 245 H726"/>
+  <path class="ln" d="M938 245 H958"/>
+
+  <!-- outputs -->
+  <path class="ln" d="M832 340 V410"/>
+  <path class="ln" d="M1064 340 V410"/>
+  <rect class="box" x="726" y="410" width="212" height="100" rx="12"/>
+  <rect x="740" y="422" width="28" height="4" rx="2" fill="#2563eb"/>
+  <text x="740" y="452" class="t">Artifact Registry</text>
+  <text x="740" y="472" class="s">GCP · europe-southwest1</text>
+  <text x="740" y="490" class="s mono" style="font-size:11px">chollos/web:&lt;sha&gt;</text>
+  <rect class="box" x="958" y="410" width="212" height="100" rx="12"/>
+  <rect x="972" y="422" width="28" height="4" rx="2" fill="#4f46e5"/>
+  <text x="972" y="452" class="t">cicd-crud-gitops</text>
+  <text x="972" y="472" class="s">commit: deploy(env): web sha</text>
+  <text x="972" y="490" class="s mono" style="font-size:11px">overlays/&lt;env&gt;/kustomization</text>
+
+  <!-- Dockerfile -->
+  <path class="ln dash" d="M600 340 V400"/>
+  <rect class="box" x="30" y="400" width="670" height="196" rx="12"/>
+  <text x="50" y="428" class="t">Dockerfile · multi-stage</text>
+  <text x="680" y="428" class="m" text-anchor="end">used by step 3</text>
+  <rect x="50" y="446" width="290" height="130" rx="10" fill="#f1f5f9" stroke="#e2e8f0"/>
+  <text x="66" y="472" class="t" style="font-size:13px">Stage 1 · build</text>
+  <text x="66" y="492" class="s mono" style="font-size:11px">node:24-alpine</text>
+  <text x="66" y="514" class="s">npm ci (layer cached while</text>
+  <text x="66" y="530" class="s">package*.json is unchanged)</text>
+  <text x="66" y="552" class="s">vite build → dist/</text>
+  <path class="ln" d="M340 511 H380"/>
+  <rect x="380" y="446" width="300" height="130" rx="10" fill="#f1f5f9" stroke="#e2e8f0"/>
+  <text x="396" y="472" class="t" style="font-size:13px">Stage 2 · serve</text>
+  <text x="396" y="492" class="s mono" style="font-size:11px">nginx:stable-alpine</text>
+  <text x="396" y="514" class="s">copies dist/ + nginx.conf only,</text>
+  <text x="396" y="530" class="s">so no Node in the final image.</text>
+  <text x="396" y="552" class="s">SPA fallback · config.js no-store</text>
+
+  <!-- runtime config note -->
+  <rect x="726" y="526" width="444" height="70" rx="12" fill="#eef2ff" stroke="#c7d2fe"/>
+  <text x="742" y="550" class="t" style="font-size:13px;fill:#3730a3">One image for every environment</text>
+  <text x="742" y="570" class="s">dev and prod differ only in /config.js, which Kubernetes</text>
+  <text x="742" y="586" class="s">replaces with a per-env ConfigMap at runtime.</text>
+</svg>
